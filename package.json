@@ -1,0 +1,25 @@
+{
+  "name": "memo",
+  "version": "1.0.0",
+  "description": "\"# msa-be-memo\"",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gijoona/msa-be-memo.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gijoona/msa-be-memo/issues"
+  },
+  "homepage": "https://github.com/gijoona/msa-be-memo#readme",
+  "dependencies": {
+    "@google/maps": "^0.5.5",
+    "bluebird": "^3.5.3",
+    "mongoose": "^5.3.15",
+    "redis": "^2.8.0"
+  }
+}
