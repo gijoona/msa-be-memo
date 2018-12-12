@@ -126,13 +126,26 @@ function inquiry (method, pathname, params, cb) {
 }
 
 function modify (method, pathname, params, cb) {
-  let response = {
+  let parameters = params.data,
+      response = {
     key: params.key,
     errorcode: 0,
     errormessage: 'success'
   };
 
-  cb(response);
+  Memo.findByIdAndUpdate(parameters['_id'], parameters, function (err, memoDoc) {
+    if (err) {
+      console.error(err);
+      response.errorcode = 1;
+      response.errormessage = err
+    } else if (memoDoc) {
+      response.results = memoDoc;
+    } else {
+      response.errorcode = 1;
+      response.errormessage = 'Update failed';
+    }
+    cb(response);
+  });
 }
 
 function unregister (method, pathname, params, cb) {
