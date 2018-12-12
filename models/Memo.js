@@ -5,6 +5,7 @@ let SequenceSchema = new Schema({
   _id: { type: String, required: true },
   seq: { type: Number, default: 0 }
 });
+let sequence = mongoose.model('sequence', SequenceSchema);
 
 let GeoSchema = new Schema({
   _id: false,

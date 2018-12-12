@@ -1,6 +1,6 @@
 const conf = require('../conf/config').setting,
       mongoose = require('mongoose'),
-      memo = require('../models/Memo'),
+      Memo = require('../models/Memo'),
       googleMapsClient = require('@google/maps').createClient({
         key: 'AIzaSyCozWcBfuKMWt3gonOskO5n2SZMkd269WA'
       });
@@ -41,17 +41,106 @@ exports.onRequest = function (res, method, pathname, params, cb) {
 }
 
 function register (method, pathname, params, cb) {
-  return cb(null);
+  let parameters = params.data,
+      response = {
+    key: params.key,
+    errorcode: 0,
+    errormessage: 'success'
+  };
+  if (parameters.geoLoc) {  // geoLocation 정보가 있을 경우
+    googleMapsClient.reverseGeocode({latlng: parameters.geoLoc, language: 'ko', location_type: 'ROOFTOP'}, function (err, res) {
+      // TODO :: result가 없음.
+      // status: 'ZERO_RESULTS'라는 결과가 출력됨. 조회 결과가 없는 이유를 확인해야할 필요가 있음
+      let adress = '';
+      if (res.json.results.length > 0) {
+        adress = res.json.results[0].formatted_address;
+      } else {
+        adress = res.json.plus_code.compound_code;
+      }
+      console.log(adress);
+      let newMemo = new Memo({
+        title: parameters.title,
+        contents: parameters.contents,
+        geoLocation: {
+          type: 'Point',
+          coordinates: parameters.geoLoc,
+          adress: adress
+        }
+      });
+      newMemo.save(function (err, memoDoc) {
+        if (err) {
+          console.log(err);
+          response.errorcode = 1;
+          response.errormessage = err;
+        } else if (memoDoc) {
+          response.results = memoDoc;
+        } else {
+          response.errorcode = 1;
+          response.errormessage = 'Save failed';
+        }
+        cb(response);
+      });
+    });
+  } else {  // geoLocation 정보가 없을 경우
+    let newMemo = new Memo({
+      title: parameters.title,
+      contents: parameters.contents,
+      geoLocation: null
+    });
+    Memo.save(function (err, memoDoc) {
+      if (err) {
+        console.log(err);
+        response.errorcode = 1;
+        response.errormessage = err;
+      } else if (memoDoc) {
+        response.results = memoDoc;
+      } else {
+        response.errorcode = 1;
+        response.errormessage = 'Save failed';
+      }
+      cb(response);
+    });
+  }
 }
 
 function inquiry (method, pathname, params, cb) {
-  return cb(null);
+  let response = {
+    key: params.key,
+    errorcode: 0,
+    errormessage: 'success'
+  };
+
+  Memo.find({}, function (err, memoDoc) {
+    if (err) {
+      console.error(err);
+      response.errorcode = 1;
+      response.errormessage = err;
+    } else if (memoDoc) {
+      response.results = memoDoc;
+    } else {
+      response.errorcode = 1;
+      response.errormessage = 'no data';
+    }
+    cb(response);
+  });
 }
 
 function modify (method, pathname, params, cb) {
-  return cb(null);
+  let response = {
+    key: params.key,
+    errorcode: 0,
+    errormessage: 'success'
+  };
+
+  cb(response);
 }
 
 function unregister (method, pathname, params, cb) {
-  return cb(null);
+  let response = {
+    key: params.key,
+    errorcode: 0,
+    errormessage: 'success'
+  };
+
+  cb(response);
 }

@@ -1,4 +1,4 @@
-'use strict'
+'use strict'; // Strict 모드 사용
 
 // tcp/ip 통신을 위한 모듈
 const net = require('net');
@@ -33,9 +33,9 @@ class tcpClient {
       }
     });
 
-    // 데이터 수신
+    // 데이터수신
     this.client.on('data', (data) => {
-      this.merge = this.merge instanceof Array ? this.merge: [];
+      this.merge = this.merge instanceof Array ? this.merge : [];
       this.merge.push(Buffer.from(data));
 
       let sz = data.toString();
@@ -66,14 +66,13 @@ class tcpClient {
         this.onError(this.options, err);
       }
     });
-
   }
 
   /**
-  데이터 발송
+    데이터 발송
   */
   write (packet) {
-    this.client.write(JSON.stringify(packet) + '¶')
+    this.client.write(JSON.stringify(packet) + '¶');
   }
 }
 
