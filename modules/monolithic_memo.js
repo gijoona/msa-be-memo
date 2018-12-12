@@ -122,7 +122,7 @@ function inquiry (method, pathname, params, cb) {
       response.errormessage = 'no data';
     }
     cb(response);
-  });
+  }).sort({seq: 'desc'});
 }
 
 function modify (method, pathname, params, cb) {
