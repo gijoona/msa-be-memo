@@ -60,7 +60,7 @@ function register (method, pathname, params, cb) {
       console.log(adress);
       let newMemo = new Memo({
         title: parameters.title,
-        contents: parameters.contents,
+        contents: parameters.contents || '',
         geoLocation: {
           type: 'Point',
           coordinates: parameters.geoLoc,
@@ -84,10 +84,10 @@ function register (method, pathname, params, cb) {
   } else {  // geoLocation 정보가 없을 경우
     let newMemo = new Memo({
       title: parameters.title,
-      contents: parameters.contents,
+      contents: parameters.contents || '',
       geoLocation: null
     });
-    Memo.save(function (err, memoDoc) {
+    newMemo.save(function (err, memoDoc) {
       if (err) {
         console.log(err);
         response.errorcode = 1;
@@ -149,11 +149,30 @@ function modify (method, pathname, params, cb) {
 }
 
 function unregister (method, pathname, params, cb) {
-  let response = {
+  let parameters = params.data,
+      response = {
     key: params.key,
     errorcode: 0,
     errormessage: 'success'
   };
 
-  cb(response);
+  if (parameters.id) {
+    Memo.findByIdAndRemove(parameters.id, function (err, memoDoc) {
+      if (err) {
+        console.error(err);
+        response.errorcode = 1;
+        response.errormessage = err;
+      } else if (memoDoc) {
+        response.results = memoDoc
+      } else {
+        response.errorcode = 1;
+        response.errormessage = 'Deleted failed';
+      }
+      cb(response);
+    })
+  } else {
+    response.errorcode = 1;
+    response.errormessage = 'Empty Memo Id'
+    cb(response);
+  }
 }
