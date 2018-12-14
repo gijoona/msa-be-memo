@@ -41,12 +41,7 @@ exports.onRequest = function (res, method, pathname, params, cb) {
 }
 
 function register (method, pathname, params, cb) {
-  let parameters = params.data,
-      response = {
-    key: params.key,
-    errorcode: 0,
-    errormessage: 'success'
-  };
+  let parameters = params.data;
   if (parameters.geoLoc && parameters.geoLoc.length > 0) {  // geoLocation 정보가 있을 경우
     googleMapsClient.reverseGeocode({latlng: parameters.geoLoc, language: 'ko', location_type: 'ROOFTOP'}, function (err, res) {
       // TODO :: result가 없음.
@@ -68,17 +63,7 @@ function register (method, pathname, params, cb) {
         }
       });
       newMemo.save(function (err, memoDoc) {
-        if (err) {
-          console.log(err);
-          response.errorcode = 1;
-          response.errormessage = err;
-        } else if (memoDoc) {
-          response.results = memoDoc;
-        } else {
-          response.errorcode = 1;
-          response.errormessage = 'Save failed';
-        }
-        cb(response);
+        resultProc(err, memoDoc, params, cb);
       });
     });
   } else {  // geoLocation 정보가 없을 경우
@@ -88,63 +73,22 @@ function register (method, pathname, params, cb) {
       geoLocation: null
     });
     newMemo.save(function (err, memoDoc) {
-      if (err) {
-        console.log(err);
-        response.errorcode = 1;
-        response.errormessage = err;
-      } else if (memoDoc) {
-        response.results = memoDoc;
-      } else {
-        response.errorcode = 1;
-        response.errormessage = 'Save failed';
-      }
-      cb(response);
+      resultProc(err, memoDoc, params, cb);
     });
   }
 }
 
 function inquiry (method, pathname, params, cb) {
-  let response = {
-    key: params.key,
-    errorcode: 0,
-    errormessage: 'success'
-  };
-
   Memo.find({}, function (err, memoDoc) {
-    if (err) {
-      console.error(err);
-      response.errorcode = 1;
-      response.errormessage = err;
-    } else if (memoDoc) {
-      response.results = memoDoc;
-    } else {
-      response.errorcode = 1;
-      response.errormessage = 'no data';
-    }
-    cb(response);
+    resultProc(err, memoDoc, params, cb);
   }).sort({seq: 'desc'});
 }
 
 function modify (method, pathname, params, cb) {
-  let parameters = params.data,
-      response = {
-    key: params.key,
-    errorcode: 0,
-    errormessage: 'success'
-  };
+  let parameters = params.data;
 
   Memo.findByIdAndUpdate(parameters['_id'], parameters, function (err, memoDoc) {
-    if (err) {
-      console.error(err);
-      response.errorcode = 1;
-      response.errormessage = err
-    } else if (memoDoc) {
-      response.results = memoDoc;
-    } else {
-      response.errorcode = 1;
-      response.errormessage = 'Update failed';
-    }
-    cb(response);
+    resultProc(err, memoDoc, params, cb);
   });
 }
 
@@ -158,21 +102,44 @@ function unregister (method, pathname, params, cb) {
 
   if (parameters.id) {
     Memo.findByIdAndRemove(parameters.id, function (err, memoDoc) {
-      if (err) {
-        console.error(err);
-        response.errorcode = 1;
-        response.errormessage = err;
-      } else if (memoDoc) {
-        response.results = memoDoc
-      } else {
-        response.errorcode = 1;
-        response.errormessage = 'Deleted failed';
-      }
-      cb(response);
-    })
+      resultProc(err, memoDoc, params, cb);
+    });
   } else {
-    response.errorcode = 1;
-    response.errormessage = 'Empty Memo Id'
-    cb(response);
+    fnFailed('Empty Memo Id', response, cb)
   }
+}
+
+function resultProc (err, results, params, cb) {
+  let res = {
+    key: params.key,
+    errorcode: 0,
+    errormessage: 'success'
+  };
+  if (err) {
+    fnError(err, res, cb);
+  } else if (results) {
+    fnSuccess(results, res, cb);
+  } else {
+    fnFailed('Failed', res, cb);
+  }
+}
+
+function fnError (err, res, cb) {
+  console.error(err);
+  res.errorcode = 1;
+  res.errormessage = err;
+  cb(res);
+}
+
+function fnSuccess (results, res, cb) {
+  let pageInfo = { total: results.length || 0 };
+  res.pageInfo = pageInfo;
+  res.results = results;
+  cb(res);
+}
+
+function fnFailed (msg, res, cb) {
+  res.errorcode = 1;
+  res.errormessage = msg;
+  cb(res);
 }
