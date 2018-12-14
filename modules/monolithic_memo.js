@@ -79,7 +79,14 @@ function register (method, pathname, params, cb) {
 }
 
 function inquiry (method, pathname, params, cb) {
-  Memo.find({}, function (err, memoDoc) {
+  let parameters = params.data,
+      searchData = {};
+  if (parameters.search) {
+    searchData['$or'] = [];
+    searchData['$or'].push({title: { $regex: parameters.search, $options: 'i' }});
+    searchData['$or'].push({contents: { $regex: parameters.search, $options: 'i' }});
+  }
+  Memo.find(searchData, function (err, memoDoc) {
     resultProc(err, memoDoc, params, cb);
   }).sort({seq: 'desc'});
 }
