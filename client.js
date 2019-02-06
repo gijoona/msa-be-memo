@@ -8,7 +8,7 @@ const net = require('net');
 */
 class tcpClient {
   /**
-    생성자
+    생성자 
   */
   constructor (host, port, onCreate, onRead, onEnd, onError) {
     this.options = {
